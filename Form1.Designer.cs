@@ -33,11 +33,6 @@
             ScheduleManagementPage = new TabPage();
             NowTime_ScheduleManagementPage = new Label();
             dataGridView1 = new DataGridView();
-            專案名稱 = new DataGridViewTextBoxColumn();
-            執行狀態 = new DataGridViewTextBoxColumn();
-            上次執行時間 = new DataGridViewTextBoxColumn();
-            下次執行時間 = new DataGridViewTextBoxColumn();
-            立即執行 = new DataGridViewTextBoxColumn();
             SettingPage = new TabPage();
             NowTime_SettingPage = new Label();
             ErrorMessage = new TextBox();
@@ -55,6 +50,11 @@
             Text_Execution_Freq = new TextBox();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
+            專案名稱 = new DataGridViewTextBoxColumn();
+            執行狀態 = new DataGridViewTextBoxColumn();
+            上次執行成功時間 = new DataGridViewTextBoxColumn();
+            下次執行時間 = new DataGridViewTextBoxColumn();
+            立即執行 = new DataGridViewTextBoxColumn();
             TabControl1.SuspendLayout();
             ScheduleManagementPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
@@ -97,44 +97,12 @@
             // dataGridView1
             // 
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { 專案名稱, 執行狀態, 上次執行時間, 下次執行時間, 立即執行 });
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { 專案名稱, 執行狀態, 上次執行成功時間, 下次執行時間, 立即執行 });
             dataGridView1.Location = new Point(0, 52);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.Size = new Size(626, 279);
             dataGridView1.TabIndex = 0;
             dataGridView1.CellContentClick += dataGridView1_CellContentClick;
-            // 
-            // 專案名稱
-            // 
-            專案名稱.HeaderText = "專案名稱";
-            專案名稱.Name = "專案名稱";
-            專案名稱.ReadOnly = true;
-            // 
-            // 執行狀態
-            // 
-            執行狀態.HeaderText = "執行狀態";
-            執行狀態.Name = "執行狀態";
-            執行狀態.ReadOnly = true;
-            // 
-            // 上次執行時間
-            // 
-            上次執行時間.HeaderText = "上次執行時間";
-            上次執行時間.Name = "上次執行時間";
-            上次執行時間.ReadOnly = true;
-            上次執行時間.Width = 120;
-            // 
-            // 下次執行時間
-            // 
-            下次執行時間.HeaderText = "下次執行時間";
-            下次執行時間.Name = "下次執行時間";
-            下次執行時間.ReadOnly = true;
-            下次執行時間.Width = 120;
-            // 
-            // 立即執行
-            // 
-            立即執行.HeaderText = "立即執行";
-            立即執行.Name = "立即執行";
-            立即執行.ReadOnly = true;
             // 
             // SettingPage
             // 
@@ -317,6 +285,38 @@
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
+            // 專案名稱
+            // 
+            專案名稱.HeaderText = "專案名稱";
+            專案名稱.Name = "專案名稱";
+            專案名稱.ReadOnly = true;
+            // 
+            // 執行狀態
+            // 
+            執行狀態.HeaderText = "執行狀態";
+            執行狀態.Name = "執行狀態";
+            執行狀態.ReadOnly = true;
+            // 
+            // 上次執行成功時間
+            // 
+            上次執行成功時間.HeaderText = "上次執行成功時間";
+            上次執行成功時間.Name = "上次執行成功時間";
+            上次執行成功時間.ReadOnly = true;
+            上次執行成功時間.Width = 120;
+            // 
+            // 下次執行時間
+            // 
+            下次執行時間.HeaderText = "下次執行時間";
+            下次執行時間.Name = "下次執行時間";
+            下次執行時間.ReadOnly = true;
+            下次執行時間.Width = 120;
+            // 
+            // 立即執行
+            // 
+            立即執行.HeaderText = "立即執行";
+            立即執行.Name = "立即執行";
+            立即執行.ReadOnly = true;
+            // 
             // PythonTaskScheduler
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -355,15 +355,15 @@
         private Button button_Select_Python_Script;
         private TextBox Show_Python_Script;
         private ComboBox Options_Execution_Freq;
-        private DataGridViewTextBoxColumn 專案名稱;
-        private DataGridViewTextBoxColumn 執行狀態;
-        private DataGridViewTextBoxColumn 上次執行時間;
-        private DataGridViewTextBoxColumn 下次執行時間;
-        private DataGridViewTextBoxColumn 立即執行;
         private Button Cancel_Button;
         private TextBox ErrorMessage;
         private ContextMenuStrip contextMenuStrip1;
         private Label NowTime_ScheduleManagementPage;
         private Label NowTime_SettingPage;
+        private DataGridViewTextBoxColumn 專案名稱;
+        private DataGridViewTextBoxColumn 執行狀態;
+        private DataGridViewTextBoxColumn 上次執行成功時間;
+        private DataGridViewTextBoxColumn 下次執行時間;
+        private DataGridViewTextBoxColumn 立即執行;
     }
 }

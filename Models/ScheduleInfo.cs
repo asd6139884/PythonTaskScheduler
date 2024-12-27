@@ -8,7 +8,7 @@
         public int ExecutionFrequency { get; set; } = 1440; // 執行頻率
         public DateTime CreatedAt { get; set; } = DateTime.Now; // 建立時間
         public string ExecutionStatus { get; set; } = string.Empty; // 執行狀態（可為空）
-        public DateTime? LastExecutionTime { get; set; } // 上次執行時間（可為空）
+        public DateTime? LastSuccessfulExecutionTime { get; set; } // 上次執行時間（可為空）
         public DateTime NextExecutionTime { get; set; }
         // 構造函數
         public ScheduleInfo()

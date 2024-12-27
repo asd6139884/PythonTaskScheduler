@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using PythonTaskScheduler.Models;
 using PythonTaskScheduler.Helpers;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 
 namespace PythonTaskScheduler
@@ -14,16 +15,16 @@ namespace PythonTaskScheduler
         private System.Windows.Forms.Timer timeUpdateTimer;  // 用於更新時間的計時器
         private System.Windows.Forms.Timer errorTimer; // 用於錯誤訊息計時器
         private Task backgroundTask; // 用於定期檢查排程計時器
-        private SemaphoreSlim semaphore = new SemaphoreSlim(5); // 限制最多同時執行 5 個任務
+        //private SemaphoreSlim semaphore = new SemaphoreSlim(5); // 限制最多同時執行 5 個任務
 
         public PythonTaskScheduler()
         {
             InitializeComponent();
-            Console.WriteLine("InitializeComponent() 成功");
 
             schedules = new List<ScheduleInfo>();
             //this.Load += new System.EventHandler(this.PythonTaskScheduler_Load); // 連接 Load 事件到 PythonTaskScheduler_Load 方法
             this.Load += PythonTaskScheduler_Load;
+            dataGridView1.CellFormatting += DataGridView1_CellFormatting; // 註冊 CellFormatting 事件
 
             // 初始化 timeUpdateTimer（用來更新目前時間）
             timeUpdateTimer = new System.Windows.Forms.Timer();
@@ -44,8 +45,46 @@ namespace PythonTaskScheduler
             };
         }
 
+        private void DataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.ColumnIndex == 1) // "執行狀態" 欄位
+            {
+                if (e.Value != null)
+                {
+                    string status = e.Value.ToString();
+                    switch (status.ToLower())
+                    {
+                        case "執行完成":
+                            e.CellStyle.BackColor = Color.LightGreen;
+                            e.CellStyle.ForeColor = Color.Black;
+                            break;
+                        case "執行中":
+                            e.CellStyle.BackColor = Color.Yellow;
+                            e.CellStyle.ForeColor = Color.Black;
+                            break;
+                        case "執行失敗":
+                            e.CellStyle.BackColor = Color.Red;
+                            e.CellStyle.ForeColor = Color.Black;
+                            break;
+                        case "python失敗":
+                            e.CellStyle.BackColor = Color.Red;
+                            e.CellStyle.ForeColor = Color.Black;
+                            break;
+                        case "等待":
+                            e.CellStyle.BackColor = Color.Gray;
+                            e.CellStyle.ForeColor = Color.Black;
+                            break;
+                        default:
+                            e.CellStyle.BackColor = dataGridView1.DefaultCellStyle.BackColor;
+                            e.CellStyle.ForeColor = dataGridView1.DefaultCellStyle.ForeColor;
+                            break;
+                    }
+                }
+            }
+        }
+
         // 表單載入時執行
-        private async void PythonTaskScheduler_Load(object sender, EventArgs e)
+        private void PythonTaskScheduler_Load(object sender, EventArgs e)
         {
             try
             {
@@ -54,131 +93,112 @@ namespace PythonTaskScheduler
 
                 // 載入排程資料
                 schedules = ScheduleDataManager.LoadSchedules();
-                Console.WriteLine("Schedules資料讀取 成功");
 
                 // 啟動非同步背景任務來檢查排程
-                Console.WriteLine("檢查排程");
                 backgroundTask = Task.Run(() => MonitorSchedules());
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Schedules資料讀取失敗: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Console.WriteLine("Schedules資料讀取 失敗");
                 schedules = new List<ScheduleInfo>();
             }
 
             // 顯示排程資料
-            DisplaySchedules();
-            Console.WriteLine("顯示排程資料 成功");
+            Invoke(new Action(() => DisplaySchedules()));
         }
 
         private async void MonitorSchedules()
         {
-            List<Task> tasks = new List<Task>(); // 儲存所有執行的任務
-
             while (true)
             {
-                foreach (var schedule in schedules)
+                var now = DateTime.Now;
+                var tasksToRun = schedules.Where(s => s.NextExecutionTime <= now && s.ExecutionStatus != "執行中").ToList();
+
+                foreach (var schedule in tasksToRun)
                 {
-                    //if (schedule.NextExecutionTime <= DateTime.Now)
-                    //{
-                    //    Console.WriteLine($"{schedule.Name}專案執行開始");
-                    //    await ExecutePythonScriptAsync(schedule);
-                    //    Console.WriteLine($"{schedule.Name}專案執行結束");
-                    //}
-                    if (schedule.NextExecutionTime <= DateTime.Now)
+                    try
                     {
-                        // 啟動一個新的任務來執行該 Python 腳本
-                        var task = Task.Run(async () =>
+                        Console.WriteLine($"{schedule.Name} 執行中");
+                        schedule.ExecutionStatus = "執行中"; // 設置狀態為 "執行中"
+                        ScheduleDataManager.SaveSchedules(schedules); // 更新 JSON 檔案
+                        Invoke(new Action(() => DisplaySchedules())); // 更新UI顯示
+
+                        _ = Task.Run(async () =>
                         {
-                            await semaphore.WaitAsync(); // 確保不超過設定的最大併發數
                             try
                             {
-                                Console.WriteLine($"{schedule.Name} 專案執行開始");
                                 await ExecutePythonScriptAsync(schedule);
-                                Console.WriteLine($"{schedule.Name} 專案執行結束");
+
+                                schedule.ExecutionStatus = "執行完成";
+                                schedule.LastSuccessfulExecutionTime = DateTime.Now;
+                                schedule.NextExecutionTime = DateTime.Now.AddMinutes(schedule.ExecutionFrequency);
+                                ScheduleDataManager.SaveSchedules(schedules);
+                                Invoke(new Action(() => DisplaySchedules()));
                             }
-                            finally
+                            catch (Exception ex)
                             {
-                                semaphore.Release(); // 任務完成後釋放
+                                Console.WriteLine($"捕捉例外: {ex.Message}");
                             }
                         });
-
-                        tasks.Add(task); // 將任務加入列表
                     }
-
-                    // 等待 5 秒鐘後再次檢查
-                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"捕捉例外: {ex.Message}");
+                        schedule.ExecutionStatus = "執行失敗";
+                        schedule.NextExecutionTime = DateTime.Now.AddMinutes(schedule.ExecutionFrequency);
+                        ScheduleDataManager.SaveSchedules(schedules);
+                        Invoke(new Action(() => DisplaySchedules()));
+                    }
                 }
+                // 動態調整檢查間隔
+                int delaySeconds = tasksToRun.Any() ? 1 : 10;
+                await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
             }
+        }
 
         private async Task ExecutePythonScriptAsync(ScheduleInfo schedule)
         {
             try
             {
+                Console.WriteLine("Python開始執行");
+                //throw new Exception("這是模擬錯誤，讓程式進入catch區塊");
+
                 // 執行Python脚本
-                Console.WriteLine("確認腳本資訊");
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
                     FileName = schedule.PythonInterpreterPath,
                     Arguments = $"\"{schedule.PythonScriptPath}\"",
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true, // 確保重定向標準錯誤輸出
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
-                Console.WriteLine($"FileName:{startInfo.FileName}, Arguments:{startInfo.Arguments}");
 
                 using (Process process = Process.Start(startInfo))
                 {
-                    Console.WriteLine("Process.Start");
+                    Console.WriteLine($"{schedule.Name} Process.Start");
+
+                    // 讀取標準輸出和錯誤輸出
+                    string output = await process.StandardOutput.ReadToEndAsync();
+                    string error = await process.StandardError.ReadToEndAsync();
+
                     await Task.Run(() => process.WaitForExit());
-                    Console.WriteLine("Process.End");
-                }
+                    Console.WriteLine($"{schedule.Name} Process.End");
 
-                // 更新排程狀態
-                Console.WriteLine("更新排程資料 Start");
-                schedule.ExecutionStatus = "成功";
-                schedule.LastExecutionTime = DateTime.Now;
-                schedule.NextExecutionTime = DateTime.Now.AddMinutes(schedule.ExecutionFrequency);
-
-                ScheduleDataManager.SaveSchedules(schedules); // 儲存排程資料
-                Console.WriteLine("更新排程資料 End");
-
-                // 使用 Invoke 確保 UI 更新操作發送到 UI 執行緒
-                if (this.InvokeRequired)
-                {
-                    this.Invoke(new Action(() =>
+                    if (!string.IsNullOrEmpty(error))
                     {
-                        DisplaySchedules();  // 在 UI 執行緒中更新排程資料顯示
-                        Console.WriteLine("在 UI 執行緒中更新排程資料顯示");
-                    }));
-                }
-                else
-                {
-                    // 如果已經在 UI 執行緒中，直接更新
-                    DisplaySchedules();
-                    Console.WriteLine("直接更新排程資料顯示");
+                        throw new InvalidOperationException($"Python腳本執行錯誤: {error}");
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error executing script: {ex.Message}");
-                schedule.ExecutionStatus = "失敗";
-                ScheduleDataManager.SaveSchedules(schedules);
-
-                // 使用 Invoke 確保 UI 更新操作發送到 UI 執行緒
-                if (this.InvokeRequired)
-                {
-                    this.Invoke(new Action(() =>
-                    {
-                        DisplaySchedules();  // 在 UI 執行緒中更新排程資料顯示
-                    }));
-                }
-                else
-                {
-                    // 如果已經在 UI 執行緒中，直接更新
-                    DisplaySchedules();
-                }
+                schedule.ExecutionStatus = "Python失敗";
+                schedule.NextExecutionTime = DateTime.Now.AddMinutes(schedule.ExecutionFrequency);
+                ScheduleDataManager.SaveSchedules(schedules); // 儲存排程資料並顯示
+                Invoke(new Action(() => DisplaySchedules())); // 更新UI顯示
+                throw; // 如果需要外部捕捉，重新拋出例外
             }
         }
 
@@ -186,21 +206,33 @@ namespace PythonTaskScheduler
 
 
         //排程管理分頁----------------------------------------------------------
+        private void UpdateUI(Action updateAction)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(updateAction);
+            }
+            else
+            {
+                updateAction();
+            }
+        }
         // 顯示排程資料
         private void DisplaySchedules()
         {
-            dataGridView1.Rows.Clear(); // 清空 DataGridView
-
-            foreach (var schedule in schedules)
+            UpdateUI(() =>
             {
-                dataGridView1.Rows.Add(
+                dataGridView1.Rows.Clear(); // 清空 DataGridView
+                foreach (var schedule in schedules)
+                {
+                    dataGridView1.Rows.Add(
                     schedule.Name,
-                    string.IsNullOrEmpty(schedule.ExecutionStatus) ? "" : schedule.ExecutionStatus,
-                    schedule.LastExecutionTime.HasValue ? schedule.LastExecutionTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : "",
-                    schedule.NextExecutionTime.ToString("yyyy-MM-dd HH:mm:ss"),
-                    string.IsNullOrEmpty(schedule.ExecutionStatus) ? "" : schedule.ExecutionStatus
-                );
-            }
+                    schedule.ExecutionStatus,
+                    schedule.LastSuccessfulExecutionTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
+                    schedule.NextExecutionTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    );
+                }
+            });
         }
 
         //設定分頁----------------------------------------------------------
@@ -307,26 +339,22 @@ namespace PythonTaskScheduler
                 PythonScriptPath = pythonScriptPath,
                 ExecutionFrequency = intervalMinutes,  // 儲存為分鐘數
                 CreatedAt = DateTime.Now,
-                ExecutionStatus = "Pending",
-                LastExecutionTime = null
+                ExecutionStatus = "等待",
+                LastSuccessfulExecutionTime = null
             };
             Console.WriteLine("建立新的排程資料 成功");
 
             // 加入到排程列表中
             schedules.Add(newSchedule);
-            Console.WriteLine("加入到排程列表中 成功");
 
             // 儲存到 JSON 檔案
             ScheduleDataManager.SaveSchedules(schedules);
-            Console.WriteLine("儲存到 JSON 檔案 成功");
 
             // 返回排程管理頁面（假設是 tabControl 的某個頁面）
             TabControl1.SelectedTab = ScheduleManagementPage;
-            Console.WriteLine("返回排程管理頁面 成功");
 
             // 更新顯示的資料
             DisplaySchedules();
-            Console.WriteLine("更新顯示的資料 成功");
 
             MessageBox.Show("設定已儲存！");
 
@@ -336,13 +364,8 @@ namespace PythonTaskScheduler
         private void Cancel_Button_Click(object sender, EventArgs e)
         {
             ClearTextBoxes(); // 清空設定頁面上的輸入欄位
-            Console.WriteLine("清空設定頁面上的資訊 成功");
-
             TabControl1.SelectedTab = ScheduleManagementPage; // 返回排程管理頁面
-            Console.WriteLine("返回排程管理頁面 成功");
-
             DisplaySchedules(); // 更新顯示的資料
-            Console.WriteLine("更新顯示的資料 成功");
         }
 
         // 清除所有 TextBox 的內容
