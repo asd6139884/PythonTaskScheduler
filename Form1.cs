@@ -47,11 +47,12 @@ namespace PythonTaskScheduler
 
         private void DataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (e.ColumnIndex == 1) // "執行狀態" 欄位
+            if (e.ColumnIndex == 1 && e.CellStyle != null) // "執行狀態" 欄位
             {
-                if (e.Value != null)
+                //if (e.Value != null)
+                if (e.Value is string status)
                 {
-                    string status = e.Value.ToString();
+                    //string status = e.Value.ToString();
                     switch (status.ToLower())
                     {
                         case "執行完成":
