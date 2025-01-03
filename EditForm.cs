@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 using PythonTaskScheduler.Helpers;
 using PythonTaskScheduler.Models;
 
@@ -16,11 +17,13 @@ namespace PythonTaskScheduler
     public partial class EditForm : Form
     {
         private ScheduleInfo _schedule;
+        private readonly string _originalName; // 保存原始名稱
 
         public EditForm(ScheduleInfo schedule)
         {
             InitializeComponent();
             _schedule = schedule;
+            _originalName = schedule.Name; // 保存原始名稱用於後續查找
 
             // 預設顯示排程資料
             ProjectName.Text = _schedule.Name;
@@ -80,25 +83,22 @@ namespace PythonTaskScheduler
                     _schedule.ExecutionFrequency = frequencyInMinutes;
                 }
 
-                // 讀取當前的排程資料
-                var schedules = ScheduleDataManager.LoadSchedules();
 
-                // 找到並更新對應的排程資料
-                var index = schedules.FindIndex(s => s.Name == _schedule.Name);
+                var schedules = ScheduleDataManager.LoadSchedules(); // 讀取當前的排程資料
+                var index = schedules.FindIndex(s => s.Name == _originalName); // 找到並更新對應的排程資料
                 if (index >= 0)
                 {
                     schedules[index] = _schedule; // 更新排程資料
                 }
+                else
+                {
+                    throw new Exception("找不到原始排程資料");
+                }
 
-                // 儲存更新過的排程資料回 schedules.json
-                ScheduleDataManager.SaveSchedules(schedules);
-
-                // 顯示儲存成功訊息
-                MessageBox.Show("資料已儲存!", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                // 關閉小視窗
-                this.Close();
-    }
+                ScheduleDataManager.SaveSchedules(schedules); // 儲存更新過的排程資料回 schedules.json
+                MessageBox.Show("資料已儲存!", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information); // 顯示儲存成功訊息
+                Close(); // 關閉小視窗
+            }
             catch (Exception ex)
             {
                 MessageBox.Show($"儲存資料時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
