@@ -47,7 +47,7 @@ namespace PythonTaskScheduler
 
         private void DataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (e.ColumnIndex == 1 && e.CellStyle != null) // "執行狀態" 欄位
+            if (e.ColumnIndex == 2 && e.CellStyle != null) // "執行狀態" 欄位
             {
                 //if (e.Value != null)
                 if (e.Value is string status)
@@ -203,9 +203,6 @@ namespace PythonTaskScheduler
             }
         }
 
-
-
-
         //排程管理分頁----------------------------------------------------------
         private void UpdateUI(Action updateAction)
         {
@@ -226,14 +223,36 @@ namespace PythonTaskScheduler
                 dataGridView1.Rows.Clear(); // 清空 DataGridView
                 foreach (var schedule in schedules)
                 {
-                    dataGridView1.Rows.Add(
-                    schedule.Name,
-                    schedule.ExecutionStatus,
-                    schedule.LastSuccessfulExecutionTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
-                    schedule.NextExecutionTime.ToString("yyyy-MM-dd HH:mm:ss")
-                    );
+                    // 新增一行資料
+                    var newRow = dataGridView1.Rows[dataGridView1.Rows.Add(
+                        schedule.Name,
+                        "",
+                        schedule.ExecutionStatus,
+                        schedule.LastSuccessfulExecutionTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
+                        schedule.NextExecutionTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    )];
+
+                    // 設定「編輯」欄位的圖片
+                    newRow.Cells["編輯"].Value = Image.FromFile("./icon/Edit.png");
                 }
             });
+        }
+
+        // 編輯icon的事件處理器
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == dataGridView1.Columns["編輯"].Index)
+            {
+                // 取得選中的 ScheduleInfo
+                var selectedSchedule = schedules[e.RowIndex];
+
+                // 創建 EditForm 並傳遞選中的排程資料
+                EditForm editForm = new EditForm(selectedSchedule);
+                editForm.ShowDialog();
+
+                // 修改資料後，更新 DataGridView 顯示
+                DisplaySchedules();
+            }
         }
 
         //設定分頁----------------------------------------------------------
@@ -328,9 +347,7 @@ namespace PythonTaskScheduler
             if (!string.IsNullOrEmpty(selectedOption) && TimeMapping.TimeToMinutes.TryGetValue(selectedOption, out int minutes))
             {
                 intervalMinutes = minutes;
-                Console.WriteLine("執行頻率單位轉換成分鐘 成功");
             }
-            Console.WriteLine("取得使用者輸入的資料 成功");
 
             // 建立新的排程資料
             var newSchedule = new ScheduleInfo

@@ -7,6 +7,7 @@ namespace PythonTaskScheduler.Helpers
         public static readonly Dictionary<string, int> TimeToMinutes = new Dictionary<string, int>
         {
             { "1分鐘", 1 },
+            { "3分鐘", 3 },
             { "5分鐘", 5 },
             { "1小時", 60 },
             { "2小時", 120 },

@@ -33,6 +33,12 @@
             ScheduleManagementPage = new TabPage();
             NowTime_ScheduleManagementPage = new Label();
             dataGridView1 = new DataGridView();
+            專案名稱 = new DataGridViewTextBoxColumn();
+            編輯 = new DataGridViewImageColumn();
+            執行狀態 = new DataGridViewTextBoxColumn();
+            上次執行成功時間 = new DataGridViewTextBoxColumn();
+            下次執行時間 = new DataGridViewTextBoxColumn();
+            立即執行 = new DataGridViewTextBoxColumn();
             SettingPage = new TabPage();
             NowTime_SettingPage = new Label();
             ErrorMessage = new TextBox();
@@ -50,11 +56,6 @@
             Text_Execution_Freq = new TextBox();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
-            專案名稱 = new DataGridViewTextBoxColumn();
-            執行狀態 = new DataGridViewTextBoxColumn();
-            上次執行成功時間 = new DataGridViewTextBoxColumn();
-            下次執行時間 = new DataGridViewTextBoxColumn();
-            立即執行 = new DataGridViewTextBoxColumn();
             TabControl1.SuspendLayout();
             ScheduleManagementPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
@@ -68,7 +69,7 @@
             TabControl1.Location = new Point(1, 1);
             TabControl1.Name = "TabControl1";
             TabControl1.SelectedIndex = 0;
-            TabControl1.Size = new Size(798, 451);
+            TabControl1.Size = new Size(703, 451);
             TabControl1.TabIndex = 0;
             // 
             // ScheduleManagementPage
@@ -79,7 +80,7 @@
             ScheduleManagementPage.Location = new Point(4, 24);
             ScheduleManagementPage.Name = "ScheduleManagementPage";
             ScheduleManagementPage.Padding = new Padding(3);
-            ScheduleManagementPage.Size = new Size(790, 423);
+            ScheduleManagementPage.Size = new Size(695, 423);
             ScheduleManagementPage.TabIndex = 0;
             ScheduleManagementPage.Text = "排程管理";
             ScheduleManagementPage.Click += ScheduleManagementPage_Click;
@@ -87,7 +88,7 @@
             // NowTime_ScheduleManagementPage
             // 
             NowTime_ScheduleManagementPage.AutoSize = true;
-            NowTime_ScheduleManagementPage.Location = new Point(644, 15);
+            NowTime_ScheduleManagementPage.Location = new Point(557, 15);
             NowTime_ScheduleManagementPage.Name = "NowTime_ScheduleManagementPage";
             NowTime_ScheduleManagementPage.Size = new Size(42, 15);
             NowTime_ScheduleManagementPage.TabIndex = 1;
@@ -96,13 +97,57 @@
             // 
             // dataGridView1
             // 
+            dataGridView1.AllowUserToAddRows = false;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { 專案名稱, 執行狀態, 上次執行成功時間, 下次執行時間, 立即執行 });
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { 專案名稱, 編輯, 執行狀態, 上次執行成功時間, 下次執行時間, 立即執行 });
             dataGridView1.Location = new Point(0, 52);
             dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(626, 279);
+            dataGridView1.Size = new Size(694, 279);
             dataGridView1.TabIndex = 0;
+            dataGridView1.CellClick += dataGridView1_CellClick;
             dataGridView1.CellContentClick += dataGridView1_CellContentClick;
+            // 
+            // 專案名稱
+            // 
+            專案名稱.HeaderText = "專案名稱";
+            專案名稱.Name = "專案名稱";
+            專案名稱.ReadOnly = true;
+            // 
+            // 編輯
+            // 
+            編輯.HeaderText = "編輯";
+            編輯.ImageLayout = DataGridViewImageCellLayout.Zoom;
+            編輯.Name = "編輯";
+            編輯.Resizable = DataGridViewTriState.True;
+            編輯.SortMode = DataGridViewColumnSortMode.Automatic;
+            編輯.Width = 70;
+            // 
+            // 執行狀態
+            // 
+            執行狀態.HeaderText = "執行狀態";
+            執行狀態.Name = "執行狀態";
+            執行狀態.ReadOnly = true;
+            // 
+            // 上次執行成功時間
+            // 
+            上次執行成功時間.HeaderText = "上次執行成功時間";
+            上次執行成功時間.Name = "上次執行成功時間";
+            上次執行成功時間.ReadOnly = true;
+            上次執行成功時間.Width = 150;
+            // 
+            // 下次執行時間
+            // 
+            下次執行時間.HeaderText = "下次執行時間";
+            下次執行時間.Name = "下次執行時間";
+            下次執行時間.ReadOnly = true;
+            下次執行時間.Width = 150;
+            // 
+            // 立即執行
+            // 
+            立即執行.HeaderText = "立即執行";
+            立即執行.Name = "立即執行";
+            立即執行.ReadOnly = true;
+            立即執行.Width = 80;
             // 
             // SettingPage
             // 
@@ -124,7 +169,7 @@
             SettingPage.Location = new Point(4, 24);
             SettingPage.Name = "SettingPage";
             SettingPage.Padding = new Padding(3);
-            SettingPage.Size = new Size(790, 423);
+            SettingPage.Size = new Size(695, 423);
             SettingPage.TabIndex = 1;
             SettingPage.Text = "設定";
             SettingPage.Click += SettingPage_Click;
@@ -164,7 +209,7 @@
             // Options_Execution_Freq
             // 
             Options_Execution_Freq.FormattingEnabled = true;
-            Options_Execution_Freq.Items.AddRange(new object[] { "1分鐘", "5分鐘", "1小時", "2小時", "6小時", "12小時", "1天", "1週" });
+            Options_Execution_Freq.Items.AddRange(new object[] { "1分鐘", "3分鐘", "5分鐘", "1小時", "2小時", "6小時", "12小時", "1天", "1週" });
             Options_Execution_Freq.Location = new Point(233, 181);
             Options_Execution_Freq.Name = "Options_Execution_Freq";
             Options_Execution_Freq.Size = new Size(121, 23);
@@ -285,44 +330,12 @@
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // 專案名稱
-            // 
-            專案名稱.HeaderText = "專案名稱";
-            專案名稱.Name = "專案名稱";
-            專案名稱.ReadOnly = true;
-            // 
-            // 執行狀態
-            // 
-            執行狀態.HeaderText = "執行狀態";
-            執行狀態.Name = "執行狀態";
-            執行狀態.ReadOnly = true;
-            // 
-            // 上次執行成功時間
-            // 
-            上次執行成功時間.HeaderText = "上次執行成功時間";
-            上次執行成功時間.Name = "上次執行成功時間";
-            上次執行成功時間.ReadOnly = true;
-            上次執行成功時間.Width = 120;
-            // 
-            // 下次執行時間
-            // 
-            下次執行時間.HeaderText = "下次執行時間";
-            下次執行時間.Name = "下次執行時間";
-            下次執行時間.ReadOnly = true;
-            下次執行時間.Width = 120;
-            // 
-            // 立即執行
-            // 
-            立即執行.HeaderText = "立即執行";
-            立即執行.Name = "立即執行";
-            立即執行.ReadOnly = true;
-            // 
             // PythonTaskScheduler
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
-            ClientSize = new Size(801, 450);
+            ClientSize = new Size(704, 450);
             Controls.Add(TabControl1);
             ForeColor = SystemColors.ControlText;
             Name = "PythonTaskScheduler";
@@ -361,6 +374,7 @@
         private Label NowTime_ScheduleManagementPage;
         private Label NowTime_SettingPage;
         private DataGridViewTextBoxColumn 專案名稱;
+        private DataGridViewImageColumn 編輯;
         private DataGridViewTextBoxColumn 執行狀態;
         private DataGridViewTextBoxColumn 上次執行成功時間;
         private DataGridViewTextBoxColumn 下次執行時間;
