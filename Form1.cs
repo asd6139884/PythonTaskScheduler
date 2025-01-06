@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Drawing;  // 需要引用這個命名空間來處理圖像
 using System.Collections.Generic;
 using System.Windows.Forms;
 using PythonTaskScheduler.Models;
 using PythonTaskScheduler.Helpers;
 using System.Diagnostics;
 using System.Threading.Tasks;
-
 
 namespace PythonTaskScheduler
 {
@@ -22,6 +22,7 @@ namespace PythonTaskScheduler
             InitializeComponent();
 
             schedules = new List<ScheduleInfo>();
+            this.Icon = Icon.FromHandle(new Bitmap("./icon/Monitor.png").GetHicon()); // 將 JPG 轉換為 Bitmap 並設置為圖示
             //this.Load += new System.EventHandler(this.PythonTaskScheduler_Load); // 連接 Load 事件到 PythonTaskScheduler_Load 方法
             this.Load += PythonTaskScheduler_Load;
             dataGridView1.CellFormatting += DataGridView1_CellFormatting; // 註冊 CellFormatting 事件
