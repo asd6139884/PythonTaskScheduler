@@ -51,7 +51,6 @@ namespace PythonTaskScheduler
             }
         }
 
-
         private void btnSave_Click(object sender, EventArgs e)
         {
             // 檢查必填欄位
@@ -103,6 +102,12 @@ namespace PythonTaskScheduler
             {
                 MessageBox.Show($"儲存資料時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            // 關閉編輯頁面
+            Close();
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
@@ -158,6 +163,11 @@ namespace PythonTaskScheduler
             // 呼叫 FileDialogHelper 的 SelectFile 方法
             FileDialogHelper.SelectFile("Python 腳本 (*.py)|*.py|所有檔案 (*.*)|*.*", "選擇 Python 腳本", Python_Script);
             Console.WriteLine("Python 腳本路徑選擇 成功");
+        }
+
+        private void Python_Script_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
