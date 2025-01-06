@@ -104,6 +104,46 @@ namespace PythonTaskScheduler
                 MessageBox.Show($"儲存資料時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            // 顯示確認訊息
+            var confirmResult = MessageBox.Show(
+                $"確定要刪除專案 '{_schedule.Name}' 嗎？",
+                "確認刪除",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (confirmResult == DialogResult.Yes)
+            {
+                try
+                {
+                    // 讀取當前的排程資料
+                    var schedules = ScheduleDataManager.LoadSchedules();
+
+                    // 根據 Name 查找並移除資料
+                    var scheduleToRemove = schedules.FirstOrDefault(s => s.Name == _schedule.Name);
+                    if (scheduleToRemove != null)
+                    {
+                        schedules.Remove(scheduleToRemove);
+
+                        ScheduleDataManager.SaveSchedules(schedules); // 儲存更新過的排程資料回 schedules.json
+                        MessageBox.Show("資料已成功刪除!", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information); // 顯示刪除成功訊息
+                        Close(); // 關閉小視窗
+                    }
+                    else
+                    {
+                        MessageBox.Show("未找到對應的排程資料。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"刪除資料時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+
         // Python 解釋器路徑選擇的處理程式
         private void button_Select_Python_Interpreter_Click(object sender, EventArgs e)
         {

@@ -32,15 +32,17 @@
             TabControl1 = new TabControl();
             ScheduleManagementPage = new TabPage();
             NowTime_ScheduleManagementPage = new Label();
+            textBox2 = new TextBox();
             dataGridView1 = new DataGridView();
             專案名稱 = new DataGridViewTextBoxColumn();
             編輯 = new DataGridViewImageColumn();
             執行狀態 = new DataGridViewTextBoxColumn();
             上次執行成功時間 = new DataGridViewTextBoxColumn();
             下次執行時間 = new DataGridViewTextBoxColumn();
-            立即執行 = new DataGridViewTextBoxColumn();
+            立即執行 = new DataGridViewImageColumn();
             SettingPage = new TabPage();
             NowTime_SettingPage = new Label();
+            textBox1 = new TextBox();
             ErrorMessage = new TextBox();
             Cancel_Button = new Button();
             Options_Execution_Freq = new ComboBox();
@@ -76,6 +78,7 @@
             // 
             ScheduleManagementPage.BackColor = SystemColors.Control;
             ScheduleManagementPage.Controls.Add(NowTime_ScheduleManagementPage);
+            ScheduleManagementPage.Controls.Add(textBox2);
             ScheduleManagementPage.Controls.Add(dataGridView1);
             ScheduleManagementPage.Location = new Point(4, 24);
             ScheduleManagementPage.Name = "ScheduleManagementPage";
@@ -95,6 +98,17 @@
             NowTime_ScheduleManagementPage.Text = "label1";
             NowTime_ScheduleManagementPage.Click += label1_Click;
             // 
+            // textBox2
+            // 
+            textBox2.BorderStyle = BorderStyle.None;
+            textBox2.Location = new Point(476, 15);
+            textBox2.Name = "textBox2";
+            textBox2.ReadOnly = true;
+            textBox2.Size = new Size(108, 16);
+            textBox2.TabIndex = 15;
+            textBox2.Text = "現在時間：";
+            textBox2.TextAlign = HorizontalAlignment.Center;
+            // 
             // dataGridView1
             // 
             dataGridView1.AllowUserToAddRows = false;
@@ -102,7 +116,7 @@
             dataGridView1.Columns.AddRange(new DataGridViewColumn[] { 專案名稱, 編輯, 執行狀態, 上次執行成功時間, 下次執行時間, 立即執行 });
             dataGridView1.Location = new Point(0, 52);
             dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(694, 279);
+            dataGridView1.Size = new Size(694, 361);
             dataGridView1.TabIndex = 0;
             dataGridView1.CellClick += dataGridView1_CellClick;
             dataGridView1.CellContentClick += dataGridView1_CellContentClick;
@@ -145,14 +159,17 @@
             // 立即執行
             // 
             立即執行.HeaderText = "立即執行";
+            立即執行.ImageLayout = DataGridViewImageCellLayout.Zoom;
             立即執行.Name = "立即執行";
-            立即執行.ReadOnly = true;
+            立即執行.Resizable = DataGridViewTriState.True;
+            立即執行.SortMode = DataGridViewColumnSortMode.Automatic;
             立即執行.Width = 80;
             // 
             // SettingPage
             // 
             SettingPage.BackColor = SystemColors.Control;
             SettingPage.Controls.Add(NowTime_SettingPage);
+            SettingPage.Controls.Add(textBox1);
             SettingPage.Controls.Add(ErrorMessage);
             SettingPage.Controls.Add(Cancel_Button);
             SettingPage.Controls.Add(Options_Execution_Freq);
@@ -177,11 +194,22 @@
             // NowTime_SettingPage
             // 
             NowTime_SettingPage.AutoSize = true;
-            NowTime_SettingPage.Location = new Point(644, 15);
+            NowTime_SettingPage.Location = new Point(557, 15);
             NowTime_SettingPage.Name = "NowTime_SettingPage";
             NowTime_SettingPage.Size = new Size(42, 15);
             NowTime_SettingPage.TabIndex = 2;
             NowTime_SettingPage.Text = "label1";
+            // 
+            // textBox1
+            // 
+            textBox1.BorderStyle = BorderStyle.None;
+            textBox1.Location = new Point(476, 15);
+            textBox1.Name = "textBox1";
+            textBox1.ReadOnly = true;
+            textBox1.Size = new Size(108, 16);
+            textBox1.TabIndex = 14;
+            textBox1.Text = "現在時間：";
+            textBox1.TextAlign = HorizontalAlignment.Center;
             // 
             // ErrorMessage
             // 
@@ -373,11 +401,13 @@
         private ContextMenuStrip contextMenuStrip1;
         private Label NowTime_ScheduleManagementPage;
         private Label NowTime_SettingPage;
+        private TextBox textBox1;
+        private TextBox textBox2;
         private DataGridViewTextBoxColumn 專案名稱;
         private DataGridViewImageColumn 編輯;
         private DataGridViewTextBoxColumn 執行狀態;
         private DataGridViewTextBoxColumn 上次執行成功時間;
         private DataGridViewTextBoxColumn 下次執行時間;
-        private DataGridViewTextBoxColumn 立即執行;
+        private DataGridViewImageColumn 立即執行;
     }
 }

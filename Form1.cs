@@ -49,10 +49,8 @@ namespace PythonTaskScheduler
         {
             if (e.ColumnIndex == 2 && e.CellStyle != null) // "執行狀態" 欄位
             {
-                //if (e.Value != null)
                 if (e.Value is string status)
                 {
-                    //string status = e.Value.ToString();
                     switch (status.ToLower())
                     {
                         case "執行完成":
@@ -92,6 +90,21 @@ namespace PythonTaskScheduler
                 // 開始顯示時間更新
                 timeUpdateTimer.Start();
 
+                // 讀取目前的排程資料
+                var _ = ScheduleDataManager.LoadSchedules();
+
+                // 更新狀態
+                foreach (var schedule in _)
+                {
+                    if (schedule.ExecutionStatus == "執行中")
+                    {
+                        schedule.ExecutionStatus = "等待";
+                    }
+                }
+
+                // 儲存更新後的排程資料
+                ScheduleDataManager.SaveSchedules(_);
+
                 // 載入排程資料
                 schedules = ScheduleDataManager.LoadSchedules();
 
@@ -128,11 +141,13 @@ namespace PythonTaskScheduler
                         {
                             try
                             {
+                                var startExecutionTime = DateTime.Now; // 記錄此次開始執行的時間
+
                                 await ExecutePythonScriptAsync(schedule);
 
                                 schedule.ExecutionStatus = "執行完成";
                                 schedule.LastSuccessfulExecutionTime = DateTime.Now;
-                                schedule.NextExecutionTime = DateTime.Now.AddMinutes(schedule.ExecutionFrequency);
+                                schedule.NextExecutionTime = startExecutionTime.AddMinutes(schedule.ExecutionFrequency);
                                 ScheduleDataManager.SaveSchedules(schedules);
                                 Invoke(new Action(() => DisplaySchedules()));
                             }
@@ -223,17 +238,17 @@ namespace PythonTaskScheduler
                 dataGridView1.Rows.Clear(); // 清空 DataGridView
                 foreach (var schedule in schedules)
                 {
-                    // 新增一行資料
-                    var newRow = dataGridView1.Rows[dataGridView1.Rows.Add(
-                        schedule.Name,
-                        "",
-                        schedule.ExecutionStatus,
-                        schedule.LastSuccessfulExecutionTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
-                        schedule.NextExecutionTime.ToString("yyyy-MM-dd HH:mm:ss")
-                    )];
+                    var newRow = dataGridView1.Rows[dataGridView1.Rows.Add()];
 
-                    // 設定「編輯」欄位的圖片
-                    newRow.Cells["編輯"].Value = Image.FromFile("./icon/Edit.png");
+                    // 設定每個欄位的值
+                    newRow.Cells["專案名稱"].Value = schedule.Name;
+                    newRow.Cells["執行狀態"].Value = schedule.ExecutionStatus;
+                    newRow.Cells["上次執行成功時間"].Value = schedule.LastSuccessfulExecutionTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
+                    newRow.Cells["下次執行時間"].Value = schedule.NextExecutionTime.ToString("yyyy-MM-dd HH:mm:ss");
+
+                    // 設定圖片欄位的值
+                    newRow.Cells["編輯"].Value = Image.FromFile("./icon/Edit.png"); // 設定「編輯」欄位的圖片
+                    newRow.Cells["立即執行"].Value = Image.FromFile("./icon/Start.jpg"); // 設定「立即執行」欄位的圖片
                 }
             });
         }
@@ -241,17 +256,63 @@ namespace PythonTaskScheduler
         // 編輯icon的事件處理器
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0 && e.ColumnIndex == dataGridView1.Columns["編輯"].Index)
+            if (e.RowIndex >= 0)
             {
-                // 取得選中的 ScheduleInfo
-                var selectedSchedule = schedules[e.RowIndex];
+                // 判斷是否點擊到「編輯」按鈕
+                if (e.ColumnIndex == dataGridView1.Columns["編輯"].Index)
+                {
+                    // 取得選中的 ScheduleInfo
+                    var selectedSchedule = schedules[e.RowIndex];
 
-                // 創建 EditForm 並傳遞選中的排程資料
-                EditForm editForm = new EditForm(selectedSchedule);
-                editForm.ShowDialog();
+                    // 創建 EditForm 並傳遞選中的排程資料
+                    EditForm editForm = new EditForm(selectedSchedule);
+                    editForm.ShowDialog();
 
-                // 修改資料後，更新 DataGridView 顯示
-                DisplaySchedules();
+                    schedules = ScheduleDataManager.LoadSchedules(); // 重新載入最新資料
+                    DisplaySchedules(); // 修改資料後，更新 DataGridView 顯示
+                }
+
+                // 判斷是否點擊到「立即執行」按鈕
+                if (e.ColumnIndex == dataGridView1.Columns["立即執行"].Index)
+                {
+                    var schedule = schedules[e.RowIndex];
+                    // 取得選中的專案名稱
+                    try
+                    {
+                        schedule.ExecutionStatus = "執行中"; // 設置狀態為 "執行中"
+                        ScheduleDataManager.SaveSchedules(schedules); // 更新 JSON 檔案
+                        Invoke(new Action(() => DisplaySchedules())); // 更新UI顯示
+
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                var startExecutionTime = DateTime.Now; // 記錄此次開始執行的時間
+
+                                await ExecutePythonScriptAsync(schedule);
+
+                                schedule.ExecutionStatus = "執行完成";
+                                schedule.LastSuccessfulExecutionTime = DateTime.Now;
+                                schedule.NextExecutionTime = startExecutionTime.AddMinutes(schedule.ExecutionFrequency);
+                                ScheduleDataManager.SaveSchedules(schedules);
+                                Invoke(new Action(() => DisplaySchedules()));
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"捕捉例外: {ex.Message}");
+                            }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"捕捉例外: {ex.Message}");
+                        schedule.ExecutionStatus = "執行失敗";
+                        schedule.NextExecutionTime = DateTime.Now.AddMinutes(schedule.ExecutionFrequency);
+                        ScheduleDataManager.SaveSchedules(schedules);
+                        Invoke(new Action(() => DisplaySchedules()));
+                    }
+
+                }
             }
         }
 

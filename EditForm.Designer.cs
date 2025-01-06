@@ -47,6 +47,7 @@
             Options_Execution_Freq = new ComboBox();
             button_Select_Python_Script = new Button();
             button_Select_Python_Interpreter = new Button();
+            Delete_Button = new Button();
             SuspendLayout();
             // 
             // ProjectName
@@ -186,7 +187,6 @@
             // 
             NextExecutionTime.Location = new Point(177, 324);
             NextExecutionTime.Name = "NextExecutionTime";
-            NextExecutionTime.ReadOnly = true;
             NextExecutionTime.Size = new Size(232, 23);
             NextExecutionTime.TabIndex = 15;
             // 
@@ -236,11 +236,24 @@
             button_Select_Python_Interpreter.UseVisualStyleBackColor = false;
             button_Select_Python_Interpreter.Click += button_Select_Python_Interpreter_Click;
             // 
+            // Delete_Button
+            // 
+            Delete_Button.BackColor = Color.Red;
+            Delete_Button.FlatStyle = FlatStyle.Flat;
+            Delete_Button.Location = new Point(389, 375);
+            Delete_Button.Name = "Delete_Button";
+            Delete_Button.Size = new Size(75, 23);
+            Delete_Button.TabIndex = 21;
+            Delete_Button.Text = "刪除";
+            Delete_Button.UseVisualStyleBackColor = false;
+            Delete_Button.Click += btnDelete_Click;
+            // 
             // EditForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(499, 450);
+            Controls.Add(Delete_Button);
             Controls.Add(button_Select_Python_Script);
             Controls.Add(button_Select_Python_Interpreter);
             Controls.Add(Options_Execution_Freq);
@@ -287,5 +300,6 @@
         private ComboBox Options_Execution_Freq;
         private Button button_Select_Python_Script;
         private Button button_Select_Python_Interpreter;
+        private Button Delete_Button;
     }
 }
